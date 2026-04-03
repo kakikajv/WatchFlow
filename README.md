@@ -1,1 +1,1277 @@
-# WatchFlow
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WatchFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080810;
+    --surface: #0f0f1a;
+    --surface2: #151525;
+    --border: rgba(138, 43, 226, 0.18);
+    --violet: #7c3aed;
+    --violet-bright: #a855f7;
+    --magenta: #e040fb;
+    --neon: #d946ef;
+    --neon-dim: rgba(217, 70, 239, 0.15);
+    --gold: #fbbf24;
+    --text: #f0eaff;
+    --text-dim: #8b7fa8;
+    --text-muted: #4a4468;
+    --glow-violet: 0 0 30px rgba(168, 85, 247, 0.4);
+    --glow-neon: 0 0 30px rgba(217, 70, 239, 0.5);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(124, 58, 237, 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 80% 80%, rgba(217, 70, 239, 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(232, 121, 249, 0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 100px;
+  }
+
+  .header {
+    padding: 36px 24px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+  }
+
+  .logo-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #e0d7ff 0%, #a855f7 50%, #e040fb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--neon);
+    box-shadow: var(--glow-neon);
+    margin-left: 2px;
+    margin-bottom: 6px;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  .streak-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .streak-badge .flame { font-size: 14px; }
+
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    margin: 0 24px 24px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: all 0.25s ease;
+    letter-spacing: 0.3px;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--violet), var(--neon));
+    color: white;
+    box-shadow: 0 2px 12px rgba(168, 85, 247, 0.4);
+  }
+
+  .view { display: none; animation: fadeIn 0.3s ease; }
+  .view.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .spin-view { padding: 0 24px; }
+
+  .spin-count-pill {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .spin-count-pill span {
+    display: inline-block;
+    background: var(--neon-dim);
+    border: 1px solid rgba(217, 70, 239, 0.3);
+    color: var(--violet-bright);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Space Mono', monospace;
+    padding: 4px 14px;
+    border-radius: 99px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .wheel-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .wheel-pointer {
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 26px solid var(--neon);
+    filter: drop-shadow(0 0 10px rgba(217, 70, 239, 0.9));
+    z-index: 10;
+    margin-bottom: -4px;
+    animation: pointer-bounce 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pointer-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .wheel-wrapper {
+    position: relative;
+    width: 320px;
+    height: 320px;
+  }
+
+  .wheel-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--violet), var(--neon), var(--magenta), var(--violet));
+    opacity: 0.3;
+    filter: blur(12px);
+    animation: ring-spin 4s linear infinite;
+  }
+
+  @keyframes ring-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  #wheelCanvas {
+    border-radius: 50%;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+    transition: filter 0.3s;
+  }
+
+  #wheelCanvas:hover { filter: brightness(1.05); }
+
+  .wheel-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #1a1030 0%, #0d0820 100%);
+    border: 2px solid rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(0,0,0,0.5);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .spin-btn {
+    margin-top: 28px;
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #e040fb 100%);
+    color: white;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(168, 85, 247, 0.5), 0 0 0 1px rgba(168, 85, 247, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .spin-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .spin-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.65), 0 0 0 1px rgba(217, 70, 239, 0.4);
+  }
+
+  .spin-btn:active:not(:disabled) { transform: translateY(0); }
+  .spin-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .result-card {
+    margin-top: 24px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid rgba(217, 70, 239, 0.3);
+    border-radius: var(--radius);
+    box-shadow: 0 0 30px rgba(217, 70, 239, 0.15);
+    display: none;
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .result-card.visible { display: block; }
+
+  .result-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--neon);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 8px;
+  }
+
+  .result-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+
+  .result-actions { display: flex; gap: 10px; }
+
+  .btn-watch {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--violet), var(--neon));
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-watch:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .btn-skip {
+    flex: 1;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-skip:hover { border-color: rgba(168, 85, 247, 0.4); color: var(--text); }
+
+  .empty-wheel {
+    text-align: center;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+  }
+
+  .empty-wheel p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+  .empty-wheel .emoji { font-size: 32px; margin-bottom: 10px; }
+
+  .list-view { padding: 0 24px; }
+
+  .add-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .add-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 12px;
+  }
+
+  .input-row { display: flex; gap: 10px; }
+
+  .add-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .add-input::placeholder { color: var(--text-muted); }
+
+  .add-input:focus {
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+  }
+
+  .type-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 10px;
+    color: var(--text-dim);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .type-select:focus { border-color: rgba(168, 85, 247, 0.5); }
+
+  .add-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--violet), var(--neon));
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 12px rgba(168, 85, 247, 0.4);
+    transition: all 0.2s;
+  }
+
+  .add-btn:hover { transform: scale(1.05); box-shadow: 0 4px 20px rgba(168, 85, 247, 0.6); }
+  .add-btn:active { transform: scale(0.97); }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-count {
+    background: var(--neon-dim);
+    color: var(--violet-bright);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .clear-btn {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .clear-btn:hover { color: #f87171; background: rgba(248, 113, 113, 0.08); }
+
+  .movie-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .movie-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 14px;
+    transition: all 0.25s ease;
+    animation: itemIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes itemIn {
+    from { opacity: 0; transform: translateX(-12px) scale(0.97); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+  }
+
+  .movie-item:hover {
+    border-color: rgba(168, 85, 247, 0.3);
+    background: rgba(124, 58, 237, 0.06);
+  }
+
+  .movie-item.watched { opacity: 0.55; }
+  .movie-item.watched .movie-name { text-decoration: line-through; color: var(--text-muted); }
+
+  .check-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 13px;
+    color: transparent;
+  }
+
+  .check-btn:hover { border-color: var(--neon); background: var(--neon-dim); }
+
+  .movie-item.watched .check-btn {
+    border-color: var(--violet);
+    background: rgba(124, 58, 237, 0.2);
+    color: var(--violet-bright);
+  }
+
+  .movie-info { flex: 1; min-width: 0; }
+
+  .movie-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s;
+  }
+
+  .movie-type-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .delete-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .delete-btn:hover { background: rgba(248, 113, 113, 0.12); color: #f87171; }
+
+  .stats-view { padding: 0 24px; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--violet), var(--neon));
+  }
+
+  .stat-icon { font-size: 22px; margin-bottom: 8px; }
+
+  .stat-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--text), var(--violet-bright));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .progress-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .progress-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .progress-pct { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--neon); }
+
+  .progress-bar-bg {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--violet), var(--neon));
+    border-radius: 99px;
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 10px rgba(217, 70, 239, 0.5);
+  }
+
+  .gamification-card {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(217, 70, 239, 0.08));
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .gamification-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .gamification-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  .no-skip-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+
+  .toggle-label { font-size: 13px; font-weight: 500; color: var(--text); }
+  .toggle-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .toggle-switch {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: all 0.3s;
+  }
+
+  .toggle-switch input:checked + .toggle-track {
+    background: linear-gradient(135deg, var(--violet), var(--neon));
+    border-color: transparent;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+  }
+
+  .toggle-switch input:checked + .toggle-track::after {
+    transform: translateX(18px);
+    background: white;
+  }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; line-height: 1.6; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 99px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(168, 85, 247, 0.2);
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s;
+    opacity: 0;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  .celebration {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    display: none;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .daily-spin-banner {
+    background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.04));
+    border: 1px solid rgba(251,191,36,0.2);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .daily-spin-banner .icon { font-size: 20px; }
+  .daily-spin-text { flex: 1; }
+  .daily-spin-text strong { font-size: 13px; color: var(--gold); display: block; }
+  .daily-spin-text span { font-size: 11px; color: var(--text-muted); }
+  .daily-done { font-size: 18px; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="logo">
+      <span class="logo-text">WatchFlow</span>
+      <div class="logo-dot"></div>
+    </div>
+    <div class="streak-badge">
+      <span class="flame">🔥</span>
+      <span id="streakCount">0</span> day streak
+    </div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('spin', event)">🎡 Spin</button>
+    <button class="tab-btn" onclick="switchTab('list', event)">📋 Watchlist</button>
+    <button class="tab-btn" onclick="switchTab('stats', event)">📊 Stats</button>
+  </div>
+
+  <!-- SPIN VIEW -->
+  <div class="view active" id="view-spin">
+    <div class="spin-view">
+      <div class="daily-spin-banner" id="dailyBanner">
+        <div class="icon">⭐</div>
+        <div class="daily-spin-text">
+          <strong>Daily Spin Available!</strong>
+          <span>Spin once today for your streak bonus</span>
+        </div>
+        <div id="dailyStatus"></div>
+      </div>
+
+      <div class="spin-count-pill">
+        <span id="spinCountLabel">0 titles on your wheel</span>
+      </div>
+
+      <div class="wheel-container">
+        <div class="wheel-pointer"></div>
+        <div class="wheel-wrapper">
+          <canvas id="wheelCanvas" width="320" height="320"></canvas>
+          <div class="wheel-hub">🎬</div>
+        </div>
+      </div>
+
+      <button class="spin-btn" id="spinBtn" onclick="spinWheel()">✦ SPIN IT ✦</button>
+
+      <div class="result-card" id="resultCard">
+        <div class="result-label">✦ Tonight's Pick</div>
+        <div class="result-title" id="resultTitle">—</div>
+        <div class="result-actions">
+          <button class="btn-watch" onclick="markSelectedWatched()">✓ Mark as Watched</button>
+          <button class="btn-skip" id="skipBtn" onclick="spinWheel()">↻ Spin Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div class="view" id="view-list">
+    <div class="list-view">
+      <div class="add-section">
+        <div class="add-section-title">Add to Watchlist</div>
+        <div class="input-row">
+          <input class="add-input" id="movieInput" type="text" placeholder="Movie or series name..." maxlength="60" onkeydown="handleInputKey(event)">
+          <select class="type-select" id="typeSelect">
+            <option value="Movie">🎬</option>
+            <option value="Series">📺</option>
+            <option value="Anime">⛩️</option>
+            <option value="Doc">🎙️</option>
+          </select>
+          <button class="add-btn" onclick="addMovie()">+</button>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">
+          Want to Watch
+          <span class="section-count" id="unwatchedCount">0</span>
+        </div>
+        <button class="clear-btn" onclick="clearWatched()">Clear watched</button>
+      </div>
+      <div class="movie-list" id="unwatchedList"></div>
+
+      <div class="section-header">
+        <div class="section-title">
+          Watched
+          <span class="section-count" id="watchedCount">0</span>
+        </div>
+      </div>
+      <div class="movie-list" id="watchedList"></div>
+    </div>
+  </div>
+
+  <!-- STATS VIEW -->
+  <div class="view" id="view-stats">
+    <div class="stats-view">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">🎬</div>
+          <div class="stat-number" id="statTotal">0</div>
+          <div class="stat-label">Total Added</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-number" id="statWatched">0</div>
+          <div class="stat-label">Watched</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-number" id="statRemaining">0</div>
+          <div class="stat-label">Remaining</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-number" id="statStreak">0</div>
+          <div class="stat-label">Day Streak</div>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-header">
+          <span class="progress-title">Watchlist Progress</span>
+          <span class="progress-pct" id="progressPct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="gamification-card">
+        <div class="gamification-title">🎮 Game Modes</div>
+        <div class="gamification-sub">
+          Enable No Skip Mode to commit to what the wheel selects — no backsies!
+        </div>
+        <div class="no-skip-toggle">
+          <div>
+            <div class="toggle-label">No Skip Mode</div>
+            <div class="toggle-sub">Must watch the spin result</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="noSkipToggle" onchange="saveSettings()">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="celebration" id="celebration"></div>
+
+<script>
+let movies = JSON.parse(localStorage.getItem('wf_movies') || '[]');
+let settings = JSON.parse(localStorage.getItem('wf_settings') || '{"noSkip":false}');
+let spinData = JSON.parse(localStorage.getItem('wf_spin') || '{"streak":0,"lastSpin":null,"dailyDone":false}');
+let selectedItem = null;
+let isSpinning = false;
+
+function checkStreak() {
+  const today = new Date().toDateString();
+  if (spinData.lastSpin !== today) {
+    if (spinData.lastSpin !== new Date(Date.now() - 86400000).toDateString()) {
+      if (spinData.lastSpin && spinData.lastSpin !== today) spinData.streak = 0;
+    }
+    spinData.dailyDone = false;
+    saveSpinData();
+  }
+  updateStreakUI();
+}
+
+function saveMovies() { localStorage.setItem('wf_movies', JSON.stringify(movies)); }
+function saveSettings() {
+  settings.noSkip = document.getElementById('noSkipToggle').checked;
+  localStorage.setItem('wf_settings', JSON.stringify(settings));
+  updateSkipBtn();
+}
+function saveSpinData() { localStorage.setItem('wf_spin', JSON.stringify(spinData)); }
+
+const COLORS = [
+  ['#4c1d95', '#7c3aed'], ['#701a75', '#c026d3'], ['#3b0764', '#a21caf'],
+  ['#1e1b4b', '#6d28d9'], ['#500724', '#be185d'], ['#1a1060', '#5b21b6'],
+  ['#4a044e', '#86198f'], ['#2d1b69', '#8b5cf6'],
+];
+
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+let currentAngle = 0;
+
+function drawWheel(rotation = 0) {
+  const items = movies.filter(m => !m.watched);
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 6;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (items.length === 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#0f0f1a';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(138, 43, 226, 0.2)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(138,43,226,0.3)';
+    ctx.font = '13px DM Sans';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Add movies to spin!', cx, cy);
+    return;
+  }
+
+  const slice = (Math.PI * 2) / items.length;
+  items.forEach((item, i) => {
+    const startAngle = rotation + i * slice;
+    const endAngle = startAngle + slice;
+    const [c1, c2] = COLORS[i % COLORS.length];
+    const grad = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
+    grad.addColorStop(0, c2);
+    grad.addColorStop(1, c1);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(startAngle) * r, cy + Math.sin(startAngle) * r);
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(startAngle + slice / 2);
+    const maxLen = items.length > 8 ? 8 : 14;
+    let label = item.name.length > maxLen ? item.name.substring(0, maxLen - 1) + '…' : item.name;
+    const fontSize = items.length > 8 ? 9 : items.length > 5 ? 11 : 13;
+    ctx.font = `600 ${fontSize}px DM Sans`;
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 4;
+    ctx.fillText(label, r - 12, 0);
+    ctx.restore();
+  });
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(168, 85, 247, 0.5)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fill();
+}
+
+function spinWheel() {
+  const items = movies.filter(m => !m.watched);
+  if (items.length === 0) { showToast('Add some movies first! 🎬'); return; }
+  if (isSpinning) return;
+  isSpinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('resultCard').classList.remove('visible');
+  const totalRotations = 5 + Math.random() * 5;
+  const extraAngle = Math.random() * Math.PI * 2;
+  const targetAngle = currentAngle + totalRotations * Math.PI * 2 + extraAngle;
+  const duration = 4000 + Math.random() * 1500;
+  const startTime = performance.now();
+  const startAngle = currentAngle;
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+  function animate(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    currentAngle = startAngle + (targetAngle - startAngle) * easeOut(t);
+    drawWheel(currentAngle);
+    if (t < 1) { requestAnimationFrame(animate); }
+    else {
+      currentAngle = currentAngle % (Math.PI * 2);
+      isSpinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      onSpinEnd(items);
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function onSpinEnd(items) {
+  const slice = (Math.PI * 2) / items.length;
+  let normalizedAngle = ((-Math.PI / 2 - currentAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+  selectedItem = items[Math.floor(normalizedAngle / slice) % items.length];
+  document.getElementById('resultTitle').textContent = selectedItem.name;
+  document.getElementById('resultCard').classList.add('visible');
+  const today = new Date().toDateString();
+  if (!spinData.dailyDone) {
+    spinData.dailyDone = true;
+    spinData.lastSpin = today;
+    spinData.streak = (spinData.streak || 0) + 1;
+    saveSpinData();
+    updateStreakUI();
+    setTimeout(() => celebrate(), 300);
+  }
+  updateSkipBtn();
+  showToast(`🎬 Tonight: ${selectedItem.name}`);
+}
+
+function updateSkipBtn() {
+  document.getElementById('skipBtn').style.display = settings.noSkip ? 'none' : '';
+}
+
+function markSelectedWatched() {
+  if (!selectedItem) return;
+  const movie = movies.find(m => m.id === selectedItem.id);
+  if (movie) {
+    movie.watched = true;
+    saveMovies(); renderList(); drawWheel(currentAngle); updateStats();
+    selectedItem = null;
+    document.getElementById('resultCard').classList.remove('visible');
+    showToast('✅ Marked as watched!');
+    celebrate();
+  }
+}
+
+function addMovie() {
+  const input = document.getElementById('movieInput');
+  const type = document.getElementById('typeSelect').value;
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  if (movies.some(m => m.name.toLowerCase() === name.toLowerCase())) { showToast('Already in your list! 👀'); return; }
+  movies.unshift({ id: Date.now(), name, type, watched: false, addedAt: new Date().toISOString() });
+  saveMovies(); renderList(); drawWheel(currentAngle); updateStats(); updateSpinCount();
+  input.value = ''; input.focus();
+  showToast(`Added "${name}" ✨`);
+}
+
+function handleInputKey(e) { if (e.key === 'Enter') addMovie(); }
+
+function toggleWatched(id) {
+  const movie = movies.find(m => m.id === id);
+  if (movie) {
+    movie.watched = !movie.watched;
+    if (movie.watched) celebrate();
+    saveMovies(); renderList(); drawWheel(currentAngle); updateStats();
+    showToast(movie.watched ? '✅ Marked watched!' : '↩️ Moved back to list');
+  }
+}
+
+function deleteMovie(id) {
+  movies = movies.filter(m => m.id !== id);
+  saveMovies(); renderList(); drawWheel(currentAngle); updateStats(); updateSpinCount();
+  showToast('Removed from list');
+}
+
+function clearWatched() {
+  const count = movies.filter(m => m.watched).length;
+  if (count === 0) { showToast('No watched items to clear'); return; }
+  movies = movies.filter(m => !m.watched);
+  saveMovies(); renderList(); updateStats();
+  showToast(`Cleared ${count} watched item${count > 1 ? 's' : ''} 🗑️`);
+}
+
+const typeEmojis = { Movie: '🎬', Series: '📺', Anime: '⛩️', Doc: '🎙️' };
+
+function renderList() {
+  const unwatched = movies.filter(m => !m.watched);
+  const watched = movies.filter(m => m.watched);
+  document.getElementById('unwatchedCount').textContent = unwatched.length;
+  document.getElementById('watchedCount').textContent = watched.length;
+  renderMovieList('unwatchedList', unwatched, false);
+  renderMovieList('watchedList', watched, true);
+}
+
+function renderMovieList(id, items, isWatched) {
+  const el = document.getElementById(id);
+  if (items.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">${isWatched ? '🎞️' : '🍿'}</div><p>${isWatched ? 'Nothing watched yet' : 'Your list is empty.\nAdd something to watch!'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(m => `
+    <div class="movie-item ${m.watched ? 'watched' : ''}" id="item-${m.id}">
+      <button class="check-btn" onclick="toggleWatched(${m.id})">✓</button>
+      <div class="movie-info">
+        <div class="movie-name">${escapeHtml(m.name)}</div>
+        <div class="movie-type-badge">${typeEmojis[m.type] || '🎬'} ${m.type}</div>
+      </div>
+      <button class="delete-btn" onclick="deleteMovie(${m.id})">×</button>
+    </div>`).join('');
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(str));
+  return d.innerHTML;
+}
+
+function updateStats() {
+  const total = movies.length, watched = movies.filter(m => m.watched).length;
+  const pct = total > 0 ? Math.round((watched / total) * 100) : 0;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statWatched').textContent = watched;
+  document.getElementById('statRemaining').textContent = total - watched;
+  document.getElementById('statStreak').textContent = spinData.streak || 0;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function updateSpinCount() {
+  const n = movies.filter(m => !m.watched).length;
+  document.getElementById('spinCountLabel').textContent = `${n} title${n !== 1 ? 's' : ''} on your wheel`;
+}
+
+function updateStreakUI() {
+  document.getElementById('streakCount').textContent = spinData.streak || 0;
+  document.getElementById('statStreak').textContent = spinData.streak || 0;
+  if (spinData.dailyDone) document.getElementById('dailyStatus').innerHTML = '<span class="daily-done">✅</span>';
+}
+
+function switchTab(tab, e) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  if (e && e.target) e.target.classList.add('active');
+  if (tab === 'stats') updateStats();
+}
+
+let toastTimeout;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function celebrate() {
+  const cel = document.getElementById('celebration');
+  cel.style.display = 'block'; cel.innerHTML = '';
+  const colors = ['#a855f7', '#e040fb', '#fbbf24', '#818cf8', '#f472b6'];
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.cssText = `left:${Math.random()*100}%;top:-10px;background:${colors[Math.floor(Math.random()*colors.length)]};width:${4+Math.random()*6}px;height:${4+Math.random()*6}px;border-radius:${Math.random()>.5?'50%':'2px'};animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*.5}s;`;
+    cel.appendChild(p);
+  }
+  setTimeout(() => { cel.style.display = 'none'; cel.innerHTML = ''; }, 3000);
+}
+
+function init() {
+  checkStreak(); renderList(); drawWheel(currentAngle); updateStats(); updateSpinCount(); updateSkipBtn();
+  document.getElementById('noSkipToggle').checked = settings.noSkip || false;
+  if (movies.length === 0) {
+    [{ name: 'Dune: Part Two', type: 'Movie' }, { name: 'Severance', type: 'Series' },
+     { name: 'The Bear', type: 'Series' }, { name: 'Oppenheimer', type: 'Movie' },
+     { name: 'Shōgun', type: 'Series' }].forEach(e =>
+      movies.push({ id: Date.now() + Math.random(), name: e.name, type: e.type, watched: false, addedAt: new Date().toISOString() }));
+    saveMovies(); renderList(); drawWheel(currentAngle); updateStats(); updateSpinCount();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
